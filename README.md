@@ -12,7 +12,7 @@ The interface of the structure is in the file QuadTree.py with the functions:
 
 ## Project structure ##
 
- *  QuadTree.py Provides an interface for the structure.
- *  node.py Represents a node in the tree. Implements all the funcionality of the structure.
- *  point.py Represents a 2D point stored in the tree.
- *  rectangle.py Represents a 2D range to query the tree.
+ *  __QuadTree.py__ Provides an interface for the structure.
+ *  __node.py__ Represents a node in the tree. Implements all the funcionality of the structure.
+ *  __point.py__ Represents a 2D point stored in the tree.
+ *  __rectangle.py__ Represents a 2D range to query the tree.
