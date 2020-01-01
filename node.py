@@ -22,6 +22,7 @@ class Node:
 
 
     def split(self):
+        print("Splitting Node...")
         self.tl = Node(self, Point(self.center.x - self.limit/4, self.center.y + self.limit/4), self.limit/2)
         self.tr = Node(self, Point(self.center.x + self.limit/4, self.center.y + self.limit/4), self.limit/2)
         self.bl = Node(self, Point(self.center.x - self.limit/4, self.center.y - self.limit/4), self.limit/2)
@@ -38,11 +39,11 @@ class Node:
                 else:
                     self.br.add(i)
         del self.points[:]
-        print(len(self.points))
+        #print(len(self.points))
             
 
     def add(self, point):
-        print(self.center.x , self.center.y, self)
+        #print(self.center.x , self.center.y, self)
         if (not self.find_point(point)):
             raise Exception("Point outside the range of Quadtree.")
         flag = True
@@ -50,10 +51,12 @@ class Node:
             for i in self.points:
                 if ((i.x==point.x)and (i.y==point.y)):
                     flag = False
+                    print("Point already exists in QuadTree...")
                     break
                 else:
                     flag = True
             if (flag == True):
+                print("Inserting point(", point.x, ",", point.y, ") into QuadTree...")
                 self.points.append(point)
         elif((self.capacity == len(self.points))and (self.tl == None)):
             self.split()
@@ -89,6 +92,7 @@ class Node:
 
         
     def search(self, rec):
+        print("Searching...")
         if(self.tl == None):
             for i in self.points:
                 if ( i.x >= rec.bl.x and i.x <= rec.tr.x and i.y >= rec.bl.y and i.y <= rec.tr.y):
@@ -102,7 +106,10 @@ class Node:
                 self.br.search(rec)
             if (self.bl.overlap(rec)):
                 self.bl.search(rec)
-        return rec.points
+                
+        for i in rec.points:
+            print("x:" , i.x, "y:" , i.y)
+        return
 
     def kNN_search(self, point, k, search_range, root):
         if(self.tl == None):
@@ -128,12 +135,17 @@ class Node:
                 self.bl.kNN_search(point, k, search_range, root)
 
         if( len(search_range.points) == k):
-            return search_range.points
+            for i in search_range.points:
+                print("Found point(" , i.x, "," , i.y, ")")
+            return
         elif(len(search_range.points) > k):
-            return self.Euclidean(point, search_range.points, k)
+            self.Euclidean(point, search_range.points, k)
+            return
         else:
             if(root.tl_limit.x > search_range.tl.x and root.tl_limit.y < search_range.tl.y and root.br_limit.x < search_range.br.x and root.br_limit.y > search_range.br.y ):
-                return search_range.points
+                for i in search_range.points:
+                    print("Found point(" , i.x, "," , i.y, ")")
+                return 
             else:
                 search_range.extend(2)
                 root.kNN_search(point, k, search_range, root)
@@ -149,8 +161,8 @@ class Node:
         s_list.sort(key = lambda x: x[1])
         for i in range(k):
             neighbors.append(s_list[i][0])
-        print(len(neighbors))
-        return neighbors
+        for i in neighbors:
+            print("Found point(" , i.x, "," , i.y, ")")
 
     #check if point inside square
     def find_point(self, point): 
@@ -163,6 +175,7 @@ class Node:
         if(self.tl == None):
             for i in self.points:
                 if (i.x == point.x and i.y == point.y):
+                    print("Deleting point(",point.x,",",point.y,")")
                     self.points.remove(i)
                     if (len(self.points)==0):
                         self.parent.merge()
@@ -189,7 +202,5 @@ class Node:
             if (self.parent != None):
                 self.parent.merge()
             
-
-p = Node(None, Point(0,0), 10)
 
 
