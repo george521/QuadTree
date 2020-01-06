@@ -46,18 +46,11 @@ class Node:
         #print(self.center.x , self.center.y, self)
         if (not self.find_point(point)):
             raise Exception("Point outside the range of Quadtree.")
-        flag = True
         if ((self.capacity > len(self.points))and (self.tl == None)):
             for i in self.points:
                 if ((i.x==point.x)and (i.y==point.y)):
-                    flag = False
-                    print("Point already exists in QuadTree...")
-                    break
-                else:
-                    flag = True
-            if (flag == True):
-                print("Inserting point(", point.x, ",", point.y, ") into QuadTree...")
-                self.points.append(point)
+                    raise Exception("Point already exists in QuadTree...")
+            self.points.append(point)
         elif((self.capacity == len(self.points))and (self.tl == None)):
             self.split()
             if (point.x < self.center.x):
@@ -92,7 +85,7 @@ class Node:
 
         
     def search(self, rec):
-        print("Searching...")
+
         if(self.tl == None):
             for i in self.points:
                 if ( i.x >= rec.bl.x and i.x <= rec.tr.x and i.y >= rec.bl.y and i.y <= rec.tr.y):
@@ -107,49 +100,37 @@ class Node:
             if (self.bl.overlap(rec)):
                 self.bl.search(rec)
                 
-        for i in rec.points:
-            print("x:" , i.x, "y:" , i.y)
-        return
+        return rec.points
 
-    def kNN_search(self, point, k, search_range, root):
+    def kNN_search(self, point, k, search_range, root, old_range):
         if(self.tl == None):
             for i in self.points:
                 if ( i.x >= search_range.bl.x and i.x <= search_range.tr.x and i.y >= search_range.bl.y and i.y <= search_range.tr.y):
-                    flag = True
-                    for j in search_range.points:
-                        if ((i.x==j.x)and (i.y==j.y)):
-                            flag = False
-                            break
-                        else:
-                            flag = True
-                    if (flag == True):
-                        search_range.points.append(i)
+                    if old_range is not None:
+                        if not(i.x >= old_range.bl.x and i.x <= old_range.tr.x and i.y >= old_range.bl.y and i.y <= old_range.tr.y):
+                            if not(point.x == i.x and point.y == i.y):
+                                search_range.points.append(i)
+                    else:
+                        if not(point.x == i.x and point.y == i.y):
+                            search_range.points.append(i)
         else:
             if (self.tl.overlap(search_range)):
-                self.tl.kNN_search(point, k, search_range, root)
+                self.tl.kNN_search(point, k, search_range, root, old_range)
             if (self.tr.overlap(search_range)):
-                self.tr.kNN_search(point, k, search_range, root)
+                self.tr.kNN_search(point, k, search_range, root, old_range)
             if (self.br.overlap(search_range)):
-                self.br.kNN_search(point, k, search_range, root)
+                self.br.kNN_search(point, k, search_range, root, old_range)
             if (self.bl.overlap(search_range)):
-                self.bl.kNN_search(point, k, search_range, root)
+                self.bl.kNN_search(point, k, search_range, root, old_range)
 
-        if( len(search_range.points) == k):
-            for i in search_range.points:
-                print("Found point(" , i.x, "," , i.y, ")")
-            return
-        elif(len(search_range.points) > k):
-            self.Euclidean(point, search_range.points, k)
-            return
+        if(len(search_range.points) >= k):
+            return self.Euclidean(point, search_range.points, k)
+        elif(root.tl_limit.x > search_range.tl.x and root.tl_limit.y < search_range.tl.y and root.br_limit.x < search_range.br.x and root.br_limit.y > search_range.br.y ):
+            return self.Euclidean(point, search_range.points, k)
         else:
-            if(root.tl_limit.x > search_range.tl.x and root.tl_limit.y < search_range.tl.y and root.br_limit.x < search_range.br.x and root.br_limit.y > search_range.br.y ):
-                for i in search_range.points:
-                    print("Found point(" , i.x, "," , i.y, ")")
-                return 
-            else:
-                search_range.extend(2)
-                root.kNN_search(point, k, search_range, root)
-                
+            old_range = Rectangle(search_range.tl, search_range.tr, search_range.br, search_range.bl)
+            search_range.extend(2)
+            return root.kNN_search(point, k, search_range, root, old_range)
             
     def Euclidean(self, p1, points, k):
         neighbors = []
@@ -159,10 +140,13 @@ class Node:
             s_list[i].append(points[i])
             s_list[i].append(d)
         s_list.sort(key = lambda x: x[1])
-        for i in range(k):
-            neighbors.append(s_list[i][0])
-        for i in neighbors:
-            print("Found point(" , i.x, "," , i.y, ")")
+        if(k>len(points)):
+            for i in range(len(points)):
+                neighbors.append(s_list[i][0])
+        else:
+            for i in range(k):
+                neighbors.append(s_list[i][0])
+        return neighbors
 
     #check if point inside square
     def find_point(self, point): 
