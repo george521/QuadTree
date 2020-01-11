@@ -19,30 +19,35 @@ class Node:
         self.bl = None
         self.br = None
         self.points = []
+        self.depth = 0
 
 
-    def split(self):
+    def split(self, root):
         print("Splitting Node...")
         self.tl = Node(self, Point(self.center.x - self.limit/4, self.center.y + self.limit/4), self.limit/2)
         self.tr = Node(self, Point(self.center.x + self.limit/4, self.center.y + self.limit/4), self.limit/2)
         self.bl = Node(self, Point(self.center.x - self.limit/4, self.center.y - self.limit/4), self.limit/2)
         self.br = Node(self, Point(self.center.x + self.limit/4, self.center.y - self.limit/4), self.limit/2)
+
+        if ((root.limit/(2**root.depth)) > self.limit/2):
+            root.depth += 1
+            
         for i in self.points:
             if (i.x < self.center.x):
                 if(i.y > self.center.y):
-                    self.tl.add(i)
+                    self.tl.add(i, root)
                 else:
-                    self.bl.add(i)
+                    self.bl.add(i, root)
             else:
                 if(i.y > self.center.y):
-                    self.tr.add(i)
+                    self.tr.add(i, root)
                 else:
-                    self.br.add(i)
+                    self.br.add(i, root)
         del self.points[:]
         #print(len(self.points))
             
 
-    def add(self, point):
+    def add(self, point, root):
         #print(self.center.x , self.center.y, self)
         if (not self.find_point(point)):
             raise Exception("Point outside the range of Quadtree.")
@@ -52,28 +57,28 @@ class Node:
                     raise Exception("Point already exists in QuadTree...")
             self.points.append(point)
         elif((self.capacity == len(self.points))and (self.tl == None)):
-            self.split()
+            self.split(root)
             if (point.x < self.center.x):
                 if(point.y > self.center.y):
-                    self.tl.add(point)
+                    self.tl.add(point, root)
                 else:
-                    self.bl.add(point)
+                    self.bl.add(point, root)
             else:
                 if(point.y > self.center.y):
-                    self.tr.add(point)
+                    self.tr.add(point, root)
                 else:
-                    self.br.add(point)
+                    self.br.add(point, root)
         else:
             if (point.x < self.center.x):
                 if(point.y > self.center.y):
-                    self.tl.add(point)
+                    self.tl.add(point, root)
                 else:
-                    self.bl.add(point)
+                    self.bl.add(point, root)
             else:
                 if(point.y > self.center.y):
-                    self.tr.add(point)
+                    self.tr.add(point, root)
                 else:
-                    self.br.add(point)
+                    self.br.add(point, root)
 
     #check if rectangle overlaps with square    
     def overlap(self, rectangle):     
@@ -154,6 +159,19 @@ class Node:
             return True
         else: 
             return False
+
+    def findNode(self, point):
+        if (self.tl == None):
+            return self
+        else:
+            if (self.tl.find_point(point)):
+                return self.tl.findNode(point)
+            if (self.tr.find_point(point)):
+                return self.tr.findNode(point)
+            if (self.br.find_point(point)):
+                return self.br.findNode(point)
+            if (self.bl.find_point(point)):
+                return self.bl.findNode(point)
 
     def remove_point(self, point):
         if(self.tl == None):
