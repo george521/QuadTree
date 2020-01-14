@@ -1,6 +1,8 @@
+from __future__ import division
 from point import Point
 from node import Node
 from rectangle import Rectangle
+
 
 class Quadtree:
     def __init__(self, limit):
@@ -27,11 +29,12 @@ class Quadtree:
         self.kNN_range(self.root.findNode(point))
         print("Searching...")
         search_range = Rectangle(Point(point.x - self.m_limit, point.y + self.m_limit), Point(point.x + self.m_limit, point.y + self.m_limit), Point(point.x + self.m_limit, point.y - self.m_limit), Point(point.x - self.m_limit, point.y - self.m_limit))
-        show = self.root.kNN_search(point, k, search_range, self.root, None)
+        show = self.root.kNN_search(point, k, search_range, self.root, self.m_limit)
         for i in show:
             print(i.x,"|",i.y)
 
     def kNN_range(self, node):
         self.m_limit = ((self.root.limit/(2**self.root.depth)) + node.limit)
+
 
 

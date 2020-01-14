@@ -23,7 +23,7 @@ class Node:
 
 
     def split(self, root):
-        print("Splitting Node...")
+        #print("Splitting Node...")
         self.tl = Node(self, Point(self.center.x - self.limit/4, self.center.y + self.limit/4), self.limit/2)
         self.tr = Node(self, Point(self.center.x + self.limit/4, self.center.y + self.limit/4), self.limit/2)
         self.bl = Node(self, Point(self.center.x - self.limit/4, self.center.y - self.limit/4), self.limit/2)
@@ -93,8 +93,9 @@ class Node:
 
         if(self.tl == None):
             for i in self.points:
-                if ( i.x >= rec.bl.x and i.x <= rec.tr.x and i.y >= rec.bl.y and i.y <= rec.tr.y):
-                    rec.points.append(i)
+                if i not in rec.points:
+                    if ( i.x >= rec.bl.x and i.x <= rec.tr.x and i.y >= rec.bl.y and i.y <= rec.tr.y):
+                        rec.points.append(i)
         else:
             if (self.tl.overlap(rec)):
                 self.tl.search(rec)
@@ -107,45 +108,32 @@ class Node:
                 
         return rec.points
 
-    def kNN_search(self, point, k, search_range, root, old_range):
-        if(self.tl == None):
-            for i in self.points:
-                if ( i.x >= search_range.bl.x and i.x <= search_range.tr.x and i.y >= search_range.bl.y and i.y <= search_range.tr.y):
-                    if old_range is not None:
-                        if not(i.x >= old_range.bl.x and i.x <= old_range.tr.x and i.y >= old_range.bl.y and i.y <= old_range.tr.y):
-                            if not(point.x == i.x and point.y == i.y):
-                                search_range.points.append(i)
-                    else:
-                        if not(point.x == i.x and point.y == i.y):
-                            search_range.points.append(i)
+    def kNN_search(self, point, k, search_range, root, r):
+        tmp = []
+        tmp = self.Euclidean(point, root.search(search_range), k, r)
+        if (root.tl_limit.x > search_range.tl.x and root.tl_limit.y < search_range.tl.y and root.br_limit.x < search_range.br.x and root.br_limit.y > search_range.br.y ):
+            return tmp
+        elif len(tmp)< k:
+            r += (root.limit/(2**root.depth))
+            search_range.extend(root.limit/(2**root.depth))
+            return root.kNN_search(point, k, search_range, root, r)
         else:
-            if (self.tl.overlap(search_range)):
-                self.tl.kNN_search(point, k, search_range, root, old_range)
-            if (self.tr.overlap(search_range)):
-                self.tr.kNN_search(point, k, search_range, root, old_range)
-            if (self.br.overlap(search_range)):
-                self.br.kNN_search(point, k, search_range, root, old_range)
-            if (self.bl.overlap(search_range)):
-                self.bl.kNN_search(point, k, search_range, root, old_range)
+            return tmp
 
-        if(len(search_range.points) >= k):
-            return self.Euclidean(point, search_range.points, k)
-        elif(root.tl_limit.x > search_range.tl.x and root.tl_limit.y < search_range.tl.y and root.br_limit.x < search_range.br.x and root.br_limit.y > search_range.br.y ):
-            return self.Euclidean(point, search_range.points, k)
-        else:
-            old_range = Rectangle(search_range.tl, search_range.tr, search_range.br, search_range.bl)
-            search_range.extend(2)
-            return root.kNN_search(point, k, search_range, root, old_range)
             
-    def Euclidean(self, p1, points, k):
+    def Euclidean(self, p1, points, k, r):
         neighbors = []
         s_list = [[] for i in range(len(points))]
         for i in range(len(points)):
             d = math.sqrt((points[i].x - p1.x)**2 + (points[i].y - p1.y)**2)
-            s_list[i].append(points[i])
-            s_list[i].append(d)
+            if r >= d:
+                s_list[i].append(points[i])
+                s_list[i].append(d)
+            else:
+                s_list[i].append(points[i])
+                s_list[i].append(float('Inf'))
         s_list.sort(key = lambda x: x[1])
-        if(k>len(points)):
+        if(k>len(points)):            
             for i in range(len(points)):
                 neighbors.append(s_list[i][0])
         else:
