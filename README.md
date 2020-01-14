@@ -8,8 +8,9 @@ The interface of the structure is in the file QuadTree.py with the functions:
 
    * __insert(self, Point)__ Inserts a given point in the structure.
    * __delete(self, Point)__ Deletes a given point from the structure.
-   * __query(self, top_left_corner, top_right_corner, bottom_right_corner, bottom_left_corner)__ Returns a List of points included inside the created rectangle.
-
+   * __search(self, top_left_corner, top_right_corner, bottom_right_corner, bottom_left_corner)__ Returns a List of points included inside the created rectangle.
+   * __kNN_query(self, Point, k) Returns a list of the k Nearest Neighbors of given Point.
+   
 ## Project structure ##
 
  *  __QuadTree.py__ Provides an interface for the structure.

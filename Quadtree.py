@@ -13,10 +13,10 @@ class Quadtree:
         print("Inserting point(", point.x, ",", point.y, ") into QuadTree...")
         self.root.add(point, self.root)
 
-    def query(self, top_left, top_right, bottom_right, bottom_left):
+    def search(self, top_left, top_right, bottom_right, bottom_left):
         boundary = Rectangle(top_left, top_right, bottom_right, bottom_left)
         print("Searching...")
-        show = self.root.search(boundary)
+        show = self.root.r_search(boundary)
         for i in show:
             print(i.x,"|",i.y)
         
@@ -35,6 +35,3 @@ class Quadtree:
 
     def kNN_range(self, node):
         self.m_limit = ((self.root.limit/(2**self.root.depth)) + node.limit)
-
-
-

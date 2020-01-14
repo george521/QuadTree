@@ -44,11 +44,9 @@ class Node:
                 else:
                     self.br.add(i, root)
         del self.points[:]
-        #print(len(self.points))
             
 
     def add(self, point, root):
-        #print(self.center.x , self.center.y, self)
         if (not self.find_point(point)):
             raise Exception("Point outside the range of Quadtree.")
         if ((self.capacity > len(self.points))and (self.tl == None)):
@@ -89,8 +87,7 @@ class Node:
         return True
 
         
-    def search(self, rec):
-
+    def r_search(self, rec):
         if(self.tl == None):
             for i in self.points:
                 if i not in rec.points:
@@ -98,19 +95,19 @@ class Node:
                         rec.points.append(i)
         else:
             if (self.tl.overlap(rec)):
-                self.tl.search(rec)
+                self.tl.r_search(rec)
             if (self.tr.overlap(rec)):
-                self.tr.search(rec)
+                self.tr.r_search(rec)
             if (self.br.overlap(rec)):
-                self.br.search(rec)
+                self.br.r_search(rec)
             if (self.bl.overlap(rec)):
-                self.bl.search(rec)
+                self.bl.r_search(rec)
                 
         return rec.points
 
     def kNN_search(self, point, k, search_range, root, r):
         tmp = []
-        tmp = self.Euclidean(point, root.search(search_range), k, r)
+        tmp = self.Euclidean(point, root.r_search(search_range), k, r)
         if (root.tl_limit.x > search_range.tl.x and root.tl_limit.y < search_range.tl.y and root.br_limit.x < search_range.br.x and root.br_limit.y > search_range.br.y ):
             return tmp
         elif len(tmp)< k:
@@ -126,6 +123,9 @@ class Node:
         s_list = [[] for i in range(len(points))]
         for i in range(len(points)):
             d = math.sqrt((points[i].x - p1.x)**2 + (points[i].y - p1.y)**2)
+            if (points[i].x == p1.x and points[i].y == p1.y):
+                s_list[i].append(points[i])
+                s_list[i].append(float('Inf'))
             if r >= d:
                 s_list[i].append(points[i])
                 s_list[i].append(d)
@@ -135,10 +135,12 @@ class Node:
         s_list.sort(key = lambda x: x[1])
         if(k>len(points)):            
             for i in range(len(points)):
-                neighbors.append(s_list[i][0])
+                if not(s_list[i][0].x == p1.x and s_list[i][0].y == p1.y):
+                    neighbors.append(s_list[i][0])
         else:
             for i in range(k):
-                neighbors.append(s_list[i][0])
+                if not(s_list[i][0].x == p1.x and s_list[i][0].y == p1.y):
+                    neighbors.append(s_list[i][0])
         return neighbors
 
     #check if point inside square
